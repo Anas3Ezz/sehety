@@ -9,6 +9,7 @@ class AuthTextField extends StatefulWidget {
   final bool isPassword;
   final TextInputType keyboardType;
   final TextEditingController? controller;
+  final String? errorText;
 
   const AuthTextField({
     super.key,
@@ -18,6 +19,7 @@ class AuthTextField extends StatefulWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.controller,
+    this.errorText,
   });
 
   @override
@@ -30,6 +32,8 @@ class _AuthTextFieldState extends State<AuthTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final hasError = widget.errorText != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,12 +44,16 @@ class _AuthTextFieldState extends State<AuthTextField> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: _isFocused
+              color: hasError
+                  ? AppColors.error.withOpacity(0.06)
+                  : _isFocused
                   ? AppColors.primary.withOpacity(0.06)
                   : AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _isFocused
+                color: hasError
+                    ? AppColors.error.withOpacity(0.6)
+                    : _isFocused
                     ? AppColors.primary.withOpacity(0.5)
                     : AppColors.border,
               ),
@@ -64,7 +72,9 @@ class _AuthTextFieldState extends State<AuthTextField> {
                 prefixIcon: Icon(
                   widget.prefixIcon,
                   size: 18,
-                  color: _isFocused
+                  color: hasError
+                      ? AppColors.error
+                      : _isFocused
                       ? AppColors.primaryLight
                       : AppColors.textSecondary,
                 ),
@@ -89,6 +99,28 @@ class _AuthTextFieldState extends State<AuthTextField> {
             ),
           ),
         ),
+        if (hasError) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 13,
+                color: AppColors.error,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  widget.errorText!,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.error,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

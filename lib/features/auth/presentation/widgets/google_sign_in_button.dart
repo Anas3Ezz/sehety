@@ -4,39 +4,58 @@ import 'package:flutter/material.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback onTap;
+  final bool isLoading;
 
-  const GoogleSignInButton({super.key, required this.onTap});
+  const GoogleSignInButton({
+    super.key,
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: isLoading ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: isLoading
+              ? AppColors.surfaceLight.withOpacity(0.5)
+              : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: CustomPaint(painter: _GoogleLogoPainter()),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Continue with Google',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textPrimary.withOpacity(0.8),
-                fontWeight: FontWeight.w500,
+        child: isLoading
+            ? const Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CustomPaint(painter: _GoogleLogoPainter()),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Continue with Google',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textPrimary.withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

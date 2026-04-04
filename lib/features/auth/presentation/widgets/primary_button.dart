@@ -1,5 +1,6 @@
-import 'package:fire_project/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String label;
@@ -32,6 +33,7 @@ class PrimaryButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
