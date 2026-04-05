@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/auth_repository.dart';
+
+import '../data/auth_repository.dart';
 
 part 'auth_state.dart';
 
@@ -60,7 +61,9 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
-      emit(AuthSuccess('Welcome, ${credential.user?.displayName ?? 'User'}! 🎉'));
+      emit(
+        AuthSuccess('Welcome, ${credential.user?.displayName ?? 'User'}! 🎉'),
+      );
     } on FirebaseAuthException catch (e) {
       emit(AuthFailure(AuthRepository.getErrorMessage(e)));
     } catch (_) {

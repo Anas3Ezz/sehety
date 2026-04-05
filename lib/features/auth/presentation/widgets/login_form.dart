@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../cubit/auth_cubit.dart';
+import '../../cubit/auth_cubit.dart';
 import 'auth_text_field.dart';
 import 'google_sign_in_button.dart';
 import 'primary_button.dart';
