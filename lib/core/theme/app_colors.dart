@@ -16,7 +16,6 @@ class AppColors {
   static const Color textHint = Color(0xFF3F4650);
 
   static const Color border = Color(0xFF1E2530);
-  static const Color borderLight = Color(0xFF2A3340);
 
   static const Color white = Colors.white;
   static const Color error = Color(0xFFE24B4A);

@@ -1,9 +1,9 @@
-import 'package:fire_project/core/theme/app_colors.dart';
-import 'package:fire_project/features/auth/data/auth_repository.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../cubit/auth_cubit.dart';
 import 'auth_text_field.dart';
 import 'google_sign_in_button.dart';
 import 'primary_button.dart';
@@ -19,12 +19,8 @@ class _LoginFormState extends State<LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _isEmailLoading = false;
-  bool _isGoogleLoading = false;
-
   String? _emailError;
   String? _passwordError;
-  String? _generalError;
 
   @override
   void dispose() {
@@ -40,7 +36,6 @@ class _LoginFormState extends State<LoginForm> {
     setState(() {
       _emailError = null;
       _passwordError = null;
-      _generalError = null;
 
       if (_emailController.text.trim().isEmpty) {
         _emailError = 'Email is required.';
@@ -58,160 +53,122 @@ class _LoginFormState extends State<LoginForm> {
     return valid;
   }
 
-  // ── Email Sign In ────────────────────────────────────────────────────────────
-
-  Future<void> _handleEmailSignIn() async {
-    if (!_validate()) return;
-
-    setState(() => _isEmailLoading = true);
-
-    try {
-      await AuthRepository.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-
-      if (!mounted) return;
-      _showSuccessSnackBar('Signed in successfully! 👋');
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _generalError = AuthRepository.getErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _isEmailLoading = false);
-    }
-  }
-
-  // ── Google Sign In ────────────────────────────────────────────────────────────
-
-  Future<void> _handleGoogleSignIn() async {
+  void _clearFieldErrors() {
     setState(() {
-      _isGoogleLoading = true;
-      _generalError = null;
+      _emailError = null;
+      _passwordError = null;
     });
-
-    try {
-      final credential = await AuthRepository.instance.signInWithGoogle();
-
-      // User cancelled the Google picker
-      if (credential == null) {
-        setState(() => _isGoogleLoading = false);
-        return;
-      }
-
-      if (!mounted) return;
-      _showSuccessSnackBar(
-        'Welcome, ${credential.user?.displayName ?? 'User'}! 🎉',
-      );
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _generalError = AuthRepository.getErrorMessage(e));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _generalError = 'Google sign-in failed. Try again.');
-    } finally {
-      if (mounted) setState(() => _isGoogleLoading = false);
-    }
-  }
-
-  // ── Forgot Password ───────────────────────────────────────────────────────────
-
-  Future<void> _handleForgotPassword() async {
-    final email = _emailController.text.trim();
-
-    if (email.isEmpty) {
-      setState(() => _emailError = 'Enter your email first.');
-      return;
-    }
-
-    try {
-      await AuthRepository.instance.sendPasswordResetEmail(email: email);
-      if (!mounted) return;
-      _showSuccessSnackBar('Reset email sent! Check your inbox.');
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _generalError = AuthRepository.getErrorMessage(e));
-    }
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Welcome back', style: AppTextStyles.headingMedium),
-        const SizedBox(height: 4),
-        const Text(
-          'Sign in to your account to continue',
-          style: AppTextStyles.bodySmall,
-        ),
-        const SizedBox(height: 28),
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          _clearFieldErrors();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isEmailLoading = state is AuthLoading;
+        final isGoogleLoading = state is AuthGoogleLoading;
+        final errorMessage = state is AuthFailure ? state.message : null;
 
-        // ── Fields ────────────────────────────────────────────────────────────
-        AuthTextField(
-          label: 'Email',
-          hint: 'you@example.com',
-          prefixIcon: Icons.mail_outline_rounded,
-          keyboardType: TextInputType.emailAddress,
-          controller: _emailController,
-          errorText: _emailError,
-        ),
-        const SizedBox(height: 16),
-        AuthTextField(
-          label: 'Password',
-          hint: '••••••••',
-          prefixIcon: Icons.lock_outline_rounded,
-          isPassword: true,
-          controller: _passwordController,
-          errorText: _passwordError,
-        ),
-        const SizedBox(height: 12),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Welcome back', style: AppTextStyles.headingMedium),
+            const SizedBox(height: 4),
+            const Text(
+              'Sign in to your account to continue',
+              style: AppTextStyles.bodySmall,
+            ),
+            const SizedBox(height: 28),
 
-        // ── Forgot Password ───────────────────────────────────────────────────
-        Align(
-          alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: _handleForgotPassword,
-            child: const Text('Forgot password?', style: AppTextStyles.link),
-          ),
-        ),
-        const SizedBox(height: 20),
+            // ── Fields ──────────────────────────────────────────────────────
+            AuthTextField(
+              label: 'Email',
+              hint: 'you@example.com',
+              prefixIcon: Icons.mail_outline_rounded,
+              keyboardType: TextInputType.emailAddress,
+              controller: _emailController,
+              errorText: _emailError,
+            ),
+            const SizedBox(height: 16),
+            AuthTextField(
+              label: 'Password',
+              hint: '••••••••',
+              prefixIcon: Icons.lock_outline_rounded,
+              isPassword: true,
+              controller: _passwordController,
+              errorText: _passwordError,
+            ),
+            const SizedBox(height: 12),
 
-        // ── General Error ─────────────────────────────────────────────────────
-        if (_generalError != null) ...[
-          _ErrorBanner(message: _generalError!),
-          const SizedBox(height: 16),
-        ],
+            // ── Forgot Password ─────────────────────────────────────────────
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () {
+                  final email = _emailController.text.trim();
+                  if (email.isEmpty) {
+                    setState(() => _emailError = 'Enter your email first.');
+                    return;
+                  }
+                  context.read<AuthCubit>().sendPasswordResetEmail(
+                    email: email,
+                  );
+                },
+                child: const Text(
+                  'Forgot password?',
+                  style: AppTextStyles.link,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
 
-        // ── Sign In Button ────────────────────────────────────────────────────
-        PrimaryButton(
-          label: 'Sign in',
-          onTap: _handleEmailSignIn,
-          isLoading: _isEmailLoading,
-        ),
-        const SizedBox(height: 20),
+            // ── Firebase Error Banner ───────────────────────────────────────
+            if (errorMessage != null) ...[
+              _ErrorBanner(message: errorMessage),
+              const SizedBox(height: 16),
+            ],
 
-        // ── Divider ───────────────────────────────────────────────────────────
-        _OrDivider(),
-        const SizedBox(height: 16),
+            // ── Sign In Button ──────────────────────────────────────────────
+            PrimaryButton(
+              label: 'Sign in',
+              isLoading: isEmailLoading,
+              onTap: () {
+                if (!_validate()) return;
+                context.read<AuthCubit>().signInWithEmailAndPassword(
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                );
+              },
+            ),
+            const SizedBox(height: 20),
 
-        // ── Google Button ─────────────────────────────────────────────────────
-        GoogleSignInButton(
-          onTap: _handleGoogleSignIn,
-          isLoading: _isGoogleLoading,
-        ),
-      ],
+            // ── Divider ─────────────────────────────────────────────────────
+            _OrDivider(),
+            const SizedBox(height: 16),
+
+            // ── Google Button ───────────────────────────────────────────────
+            GoogleSignInButton(
+              isLoading: isGoogleLoading,
+              onTap: () => context.read<AuthCubit>().signInWithGoogle(),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -237,7 +194,6 @@ class _OrDivider extends StatelessWidget {
 
 class _ErrorBanner extends StatelessWidget {
   final String message;
-
   const _ErrorBanner({required this.message});
 
   @override

@@ -1,6 +1,7 @@
-import 'package:fire_project/core/theme/app_colors.dart';
-import 'package:fire_project/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -65,33 +66,33 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    const sweepAngle = 3.14159 * 2;
+    const sweep = 3.14159 * 2;
 
     canvas.drawArc(
       rect,
       -1.5708,
-      sweepAngle * 0.25,
+      sweep * 0.25,
       true,
       Paint()..color = const Color(0xFF4285F4),
     );
     canvas.drawArc(
       rect,
-      -1.5708 + sweepAngle * 0.25,
-      sweepAngle * 0.25,
+      -1.5708 + sweep * 0.25,
+      sweep * 0.25,
       true,
       Paint()..color = const Color(0xFFEA4335),
     );
     canvas.drawArc(
       rect,
-      -1.5708 + sweepAngle * 0.5,
-      sweepAngle * 0.25,
+      -1.5708 + sweep * 0.5,
+      sweep * 0.25,
       true,
       Paint()..color = const Color(0xFFFBBC05),
     );
     canvas.drawArc(
       rect,
-      -1.5708 + sweepAngle * 0.75,
-      sweepAngle * 0.25,
+      -1.5708 + sweep * 0.75,
+      sweep * 0.25,
       true,
       Paint()..color = const Color(0xFF34A853),
     );

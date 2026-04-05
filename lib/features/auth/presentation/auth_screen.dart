@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import 'cubit/auth_cubit.dart';
 import 'widgets/auth_tab_switcher.dart';
 import 'widgets/login_form.dart';
 import 'widgets/register_form.dart';
@@ -17,49 +20,59 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          const _BackgroundDecoration(),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _AppLogo(),
-                  const SizedBox(height: 36),
-                  AuthTabSwitcher(
-                    selectedIndex: _selectedTab,
-                    onTabChanged: (index) =>
-                        setState(() => _selectedTab = index),
-                  ),
-                  const SizedBox(height: 32),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 280),
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.04),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
+    return BlocProvider(
+      create: (_) => AuthCubit(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
+            const _BackgroundDecoration(),
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _AppLogo(),
+                    const SizedBox(height: 36),
+                    Builder(
+                      builder: (context) => AuthTabSwitcher(
+                        selectedIndex: _selectedTab,
+                        onTabChanged: (index) {
+                          // Reset cubit state when switching tabs
+                          context.read<AuthCubit>().reset();
+                          setState(() => _selectedTab = index);
+                        },
                       ),
                     ),
-                    child: _selectedTab == 0
-                        ? const LoginForm(key: ValueKey('login'))
-                        : const RegisterForm(key: ValueKey('register')),
-                  ),
-                  const SizedBox(height: 32),
-                  const _FirebaseBadge(),
-                ],
+                    const SizedBox(height: 32),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 280),
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: _selectedTab == 0
+                          ? const LoginForm(key: ValueKey('login'))
+                          : const RegisterForm(key: ValueKey('register')),
+                    ),
+                    const SizedBox(height: 32),
+                    const _FirebaseBadge(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,9 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../data/auth_repository.dart';
+import '../cubit/auth_cubit.dart';
 import 'auth_text_field.dart';
 import 'primary_button.dart';
 
@@ -19,12 +19,9 @@ class _RegisterFormState extends State<RegisterForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _isLoading = false;
-
   String? _nameError;
   String? _emailError;
   String? _passwordError;
-  String? _generalError;
 
   @override
   void dispose() {
@@ -42,7 +39,6 @@ class _RegisterFormState extends State<RegisterForm> {
       _nameError = null;
       _emailError = null;
       _passwordError = null;
-      _generalError = null;
 
       if (_nameController.text.trim().isEmpty) {
         _nameError = 'Name is required.';
@@ -68,123 +64,117 @@ class _RegisterFormState extends State<RegisterForm> {
     return valid;
   }
 
-  // ── Register ─────────────────────────────────────────────────────────────────
-
-  Future<void> _handleRegister() async {
-    if (!_validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final credential = await AuthRepository.instance
-          .createUserWithEmailAndPassword(
-            email: _emailController.text,
-            password: _passwordController.text,
-          );
-
-      // Update display name
-      await credential.user?.updateDisplayName(_nameController.text.trim());
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Account created! Welcome, ${_nameController.text.trim()} 🎉',
-          ),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _generalError = AuthRepository.getErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Create account', style: AppTextStyles.headingMedium),
-        const SizedBox(height: 4),
-        const Text(
-          'Join and start your health journey',
-          style: AppTextStyles.bodySmall,
-        ),
-        const SizedBox(height: 28),
-
-        // ── Fields ────────────────────────────────────────────────────────────
-        AuthTextField(
-          label: 'Full name',
-          hint: 'Your name',
-          prefixIcon: Icons.person_outline_rounded,
-          controller: _nameController,
-          errorText: _nameError,
-        ),
-        const SizedBox(height: 16),
-        AuthTextField(
-          label: 'Email',
-          hint: 'you@example.com',
-          prefixIcon: Icons.mail_outline_rounded,
-          keyboardType: TextInputType.emailAddress,
-          controller: _emailController,
-          errorText: _emailError,
-        ),
-        const SizedBox(height: 16),
-        AuthTextField(
-          label: 'Password',
-          hint: 'Min. 6 characters',
-          prefixIcon: Icons.lock_outline_rounded,
-          isPassword: true,
-          controller: _passwordController,
-          errorText: _passwordError,
-        ),
-        const SizedBox(height: 24),
-
-        // ── General Error ─────────────────────────────────────────────────────
-        if (_generalError != null) ...[
-          _ErrorBanner(message: _generalError!),
-          const SizedBox(height: 16),
-        ],
-
-        // ── Register Button ───────────────────────────────────────────────────
-        PrimaryButton(
-          label: 'Create account',
-          onTap: _handleRegister,
-          isLoading: _isLoading,
-        ),
-        const SizedBox(height: 16),
-
-        // ── Terms ─────────────────────────────────────────────────────────────
-        Center(
-          child: Text.rich(
-            TextSpan(
-              text: 'By continuing, you agree to our ',
-              style: AppTextStyles.caption,
-              children: [
-                TextSpan(text: 'Terms', style: AppTextStyles.link),
-                const TextSpan(text: ' and '),
-                TextSpan(text: 'Privacy Policy', style: AppTextStyles.link),
-              ],
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          setState(() {
+            _nameError = null;
+            _emailError = null;
+            _passwordError = null;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              margin: const EdgeInsets.all(16),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ],
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+        final errorMessage = state is AuthFailure ? state.message : null;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Create account', style: AppTextStyles.headingMedium),
+            const SizedBox(height: 4),
+            const Text(
+              'Join and start your health journey',
+              style: AppTextStyles.bodySmall,
+            ),
+            const SizedBox(height: 28),
+
+            // ── Fields ──────────────────────────────────────────────────────
+            AuthTextField(
+              label: 'Full name',
+              hint: 'Your name',
+              prefixIcon: Icons.person_outline_rounded,
+              controller: _nameController,
+              errorText: _nameError,
+            ),
+            const SizedBox(height: 16),
+            AuthTextField(
+              label: 'Email',
+              hint: 'you@example.com',
+              prefixIcon: Icons.mail_outline_rounded,
+              keyboardType: TextInputType.emailAddress,
+              controller: _emailController,
+              errorText: _emailError,
+            ),
+            const SizedBox(height: 16),
+            AuthTextField(
+              label: 'Password',
+              hint: 'Min. 6 characters',
+              prefixIcon: Icons.lock_outline_rounded,
+              isPassword: true,
+              controller: _passwordController,
+              errorText: _passwordError,
+            ),
+            const SizedBox(height: 24),
+
+            // ── Firebase Error Banner ───────────────────────────────────────
+            if (errorMessage != null) ...[
+              _ErrorBanner(message: errorMessage),
+              const SizedBox(height: 16),
+            ],
+
+            // ── Register Button ─────────────────────────────────────────────
+            PrimaryButton(
+              label: 'Create account',
+              isLoading: isLoading,
+              onTap: () {
+                if (!_validate()) return;
+                context.read<AuthCubit>().createUserWithEmailAndPassword(
+                  name: _nameController.text,
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // ── Terms ───────────────────────────────────────────────────────
+            Center(
+              child: Text.rich(
+                TextSpan(
+                  text: 'By continuing, you agree to our ',
+                  style: AppTextStyles.caption,
+                  children: [
+                    TextSpan(text: 'Terms', style: AppTextStyles.link),
+                    const TextSpan(text: ' and '),
+                    TextSpan(text: 'Privacy Policy', style: AppTextStyles.link),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 class _ErrorBanner extends StatelessWidget {
   final String message;
-
   const _ErrorBanner({required this.message});
 
   @override

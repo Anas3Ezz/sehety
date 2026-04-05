@@ -9,13 +9,9 @@ class AuthRepository {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // ── Current user ────────────────────────────────────────────────────────────
-
   User? get currentUser => _firebaseAuth.currentUser;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
-
-  // ── Email & Password ─────────────────────────────────────────────────────────
 
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
@@ -41,12 +37,8 @@ class AuthRepository {
     await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
   }
 
-  // ── Google Sign In ───────────────────────────────────────────────────────────
-
   Future<UserCredential?> signInWithGoogle() async {
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-    // User cancelled the sign-in flow
     if (googleUser == null) return null;
 
     final GoogleSignInAuthentication googleAuth =
@@ -60,15 +52,13 @@ class AuthRepository {
     return await _firebaseAuth.signInWithCredential(credential);
   }
 
-  // ── Sign Out ─────────────────────────────────────────────────────────────────
-
   Future<void> signOut() async {
-    await Future.wait([_firebaseAuth.signOut(), _googleSignIn.signOut()]);
+    await Future.wait([
+      _firebaseAuth.signOut(),
+      _googleSignIn.signOut(),
+    ]);
   }
 
-  // ── Error Handling ───────────────────────────────────────────────────────────
-
-  /// Converts FirebaseAuthException codes into readable messages.
   static String getErrorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
