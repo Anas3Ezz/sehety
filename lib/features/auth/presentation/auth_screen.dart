@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../cubit/auth_cubit.dart';
+import 'cubit/auth_cubit.dart';
 import 'widgets/auth_tab_switcher.dart';
 import 'widgets/login_form.dart';
 import 'widgets/register_form.dart';
@@ -30,9 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
             SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 32,
-                ),
+                    horizontal: 24, vertical: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -42,7 +39,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       builder: (context) => AuthTabSwitcher(
                         selectedIndex: _selectedTab,
                         onTabChanged: (index) {
-                          // Reset cubit state when switching tabs
                           context.read<AuthCubit>().reset();
                           setState(() => _selectedTab = index);
                         },
@@ -51,7 +47,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 32),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 280),
-                      transitionBuilder: (child, animation) => FadeTransition(
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(
                         opacity: animation,
                         child: SlideTransition(
                           position: Tween<Offset>(

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../cubit/auth_cubit.dart';
+import '../cubit/auth_cubit.dart';
 import 'auth_text_field.dart';
 import 'google_sign_in_button.dart';
 import 'primary_button.dart';
@@ -29,8 +29,6 @@ class _LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
-  // ── Validation ───────────────────────────────────────────────────────────────
-
   bool _validate() {
     bool valid = true;
     setState(() {
@@ -53,19 +51,15 @@ class _LoginFormState extends State<LoginForm> {
     return valid;
   }
 
-  void _clearFieldErrors() {
-    setState(() {
-      _emailError = null;
-      _passwordError = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) {
-          _clearFieldErrors();
+          setState(() {
+            _emailError = null;
+            _passwordError = null;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -94,8 +88,6 @@ class _LoginFormState extends State<LoginForm> {
               style: AppTextStyles.bodySmall,
             ),
             const SizedBox(height: 28),
-
-            // ── Fields ──────────────────────────────────────────────────────
             AuthTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -114,8 +106,6 @@ class _LoginFormState extends State<LoginForm> {
               errorText: _passwordError,
             ),
             const SizedBox(height: 12),
-
-            // ── Forgot Password ─────────────────────────────────────────────
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
@@ -136,14 +126,10 @@ class _LoginFormState extends State<LoginForm> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // ── Firebase Error Banner ───────────────────────────────────────
             if (errorMessage != null) ...[
               _ErrorBanner(message: errorMessage),
               const SizedBox(height: 16),
             ],
-
-            // ── Sign In Button ──────────────────────────────────────────────
             PrimaryButton(
               label: 'Sign in',
               isLoading: isEmailLoading,
@@ -156,12 +142,8 @@ class _LoginFormState extends State<LoginForm> {
               },
             ),
             const SizedBox(height: 20),
-
-            // ── Divider ─────────────────────────────────────────────────────
             _OrDivider(),
             const SizedBox(height: 16),
-
-            // ── Google Button ───────────────────────────────────────────────
             GoogleSignInButton(
               isLoading: isGoogleLoading,
               onTap: () => context.read<AuthCubit>().signInWithGoogle(),

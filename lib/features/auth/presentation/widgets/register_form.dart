@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../cubit/auth_cubit.dart';
+import '../cubit/auth_cubit.dart';
 import 'auth_text_field.dart';
 import 'primary_button.dart';
 
@@ -31,8 +31,6 @@ class _RegisterFormState extends State<RegisterForm> {
     super.dispose();
   }
 
-  // ── Validation ───────────────────────────────────────────────────────────────
-
   bool _validate() {
     bool valid = true;
     setState(() {
@@ -44,7 +42,6 @@ class _RegisterFormState extends State<RegisterForm> {
         _nameError = 'Name is required.';
         valid = false;
       }
-
       if (_emailController.text.trim().isEmpty) {
         _emailError = 'Email is required.';
         valid = false;
@@ -52,7 +49,6 @@ class _RegisterFormState extends State<RegisterForm> {
         _emailError = 'Please enter a valid email.';
         valid = false;
       }
-
       if (_passwordController.text.isEmpty) {
         _passwordError = 'Password is required.';
         valid = false;
@@ -101,8 +97,6 @@ class _RegisterFormState extends State<RegisterForm> {
               style: AppTextStyles.bodySmall,
             ),
             const SizedBox(height: 28),
-
-            // ── Fields ──────────────────────────────────────────────────────
             AuthTextField(
               label: 'Full name',
               hint: 'Your name',
@@ -129,14 +123,10 @@ class _RegisterFormState extends State<RegisterForm> {
               errorText: _passwordError,
             ),
             const SizedBox(height: 24),
-
-            // ── Firebase Error Banner ───────────────────────────────────────
             if (errorMessage != null) ...[
               _ErrorBanner(message: errorMessage),
               const SizedBox(height: 16),
             ],
-
-            // ── Register Button ─────────────────────────────────────────────
             PrimaryButton(
               label: 'Create account',
               isLoading: isLoading,
@@ -150,8 +140,6 @@ class _RegisterFormState extends State<RegisterForm> {
               },
             ),
             const SizedBox(height: 16),
-
-            // ── Terms ───────────────────────────────────────────────────────
             Center(
               child: Text.rich(
                 TextSpan(
