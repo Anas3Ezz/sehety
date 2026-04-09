@@ -61,11 +61,11 @@ class _TabItem extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withOpacity(0.18)
+                ? AppColors.primary.withValues(alpha: 0.18)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             border: isSelected
-                ? Border.all(color: AppColors.primary.withOpacity(0.35))
+                ? Border.all(color: AppColors.primary.withValues(alpha: 0.35))
                 : null,
           ),
           alignment: Alignment.center,

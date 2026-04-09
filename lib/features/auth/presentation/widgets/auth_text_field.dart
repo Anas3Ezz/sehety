@@ -46,16 +46,16 @@ class _AuthTextFieldState extends State<AuthTextField> {
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: hasError
-                  ? AppColors.error.withOpacity(0.06)
+                  ? AppColors.error.withValues(alpha: 0.06)
                   : _isFocused
-                  ? AppColors.primary.withOpacity(0.06)
+                  ? AppColors.primary.withValues(alpha: 0.06)
                   : AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: hasError
-                    ? AppColors.error.withOpacity(0.6)
+                    ? AppColors.error.withValues(alpha: 0.6)
                     : _isFocused
-                    ? AppColors.primary.withOpacity(0.5)
+                    ? AppColors.primary.withValues(alpha: 0.5)
                     : AppColors.border,
               ),
             ),
